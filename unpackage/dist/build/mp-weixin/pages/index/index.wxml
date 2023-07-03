@@ -1,0 +1,1 @@
+<view class="content"><button data-event-opts="{{[['tap',[['getUser']]]]}}" bindtap="__e">发起请求</button>{{''+title+''}}</view>
