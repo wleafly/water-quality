@@ -49,7 +49,7 @@
 					</view>
 					<view class="device_info_row">
 						<view>设备名称：<text style="color: gray;">{{device.devName}}</text></view>
-						<view>{{device.types}}</view>
+						<view>{{device.types=='定制'?'定制设备':device.types}}</view>
 					</view>
 					<view class="device_info_row">
 						<view>创建时间：<text style="color: gray;">{{device.createTime}}</text></view>
@@ -120,32 +120,48 @@
 			};
 		},
 		onLoad() {
+			getApp().globalData.deviceArr=[]
+			getApp().globalData.customArr=[]
 			this.user = getApp().globalData.user
-
+			
+			if(this.user.userId){
+				let tails = ['getAllDeviceInfoByUserId','getCusDevByUserId']
+				
+				for(let tail of tails){
+					uni.request({
+						url:getApp().globalData.baseUrl+tail,
+						data:{
+							userId:this.user.userId,
+							UserId:this.user.userId
+						},
+						success: (res) => {
+							console.log(res.data)
+							if(tail == 'getCusDevByUserId'){
+								getApp().globalData.customArr = res.data.map(item=>(item.devSerialNumber))
+							}
+							this.deviceArr = [...this.deviceArr,...res.data]
+							getApp().globalData.deviceArr = [...getApp().globalData.deviceArr,...res.data]
+							// this.onlineArr = []
+							// this.offlineArr = []
+							for(let device of res.data){
+								if(device.stateId==0){
+									this.onlineArr.push(device)
+								}else{
+									this.offlineArr.push(device)
+								}
+							}
+							this.setDeviceType(this.deviceType)
+						}
+					})
+				}
+				
+				
+				
+			}
+			
 		},
 		onShow() {
-			if(this.user.userId){  
-				uni.request({
-					url:getApp().globalData.baseUrl+'getAllDeviceInfoByUserId',
-					data:{
-						userId:this.user.userId
-					},
-					success: (res) => {
-						this.deviceArr = res.data
-						getApp().globalData.deviceArr = this.deviceArr
-						this.onlineArr = []
-						this.offlineArr = []
-						for(let device of this.deviceArr){
-							if(device.stateId==0){
-								this.onlineArr.push(device)
-							}else{
-								this.offlineArr.push(device)
-							}
-						}
-						this.setDeviceType(this.deviceType)
-					}
-				})
-			}
+
 		},
 		methods: {
 			toLatestData(index){

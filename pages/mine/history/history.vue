@@ -19,13 +19,14 @@
 				:style="showTable?'color: gray;':'color: black;background-color: #eee'">折线图</view>
 
 		</view>
+		<!-- 历史数据表格，带分页 -->
 		<view v-if="showTable">
 			<view v-if="tableData.length">
 				<scroll-view scroll-y style="max-height: 920rpx;">
 					<uni-table :border="true" stripe>
 						<uni-tr>
 							<uni-th
-								v-for="key in usefulKeys">{{paramMap.get(key)+(paramUnitMap.get(key)?`(${paramUnitMap.get(key)})`:'')}}</uni-th>
+								v-for="key in usefulKeys">{{isNormal?(paramMap.get(key)+(paramUnitMap.get(key)?`(${paramUnitMap.get(key)})`:'')):(key.includes('value')?(customParamList.find(item=>item.number==Number(key.slice(5))).name+'('+customParamList.find(item=>item.number==Number(key.slice(5))).unit+')'):'时间')}}</uni-th>
 						</uni-tr>
 						<uni-tr v-for="data in tableData">
 							<uni-th v-for="key in usefulKeys">{{data[key]!=null?data[key]:'--'}}</uni-th>
@@ -42,13 +43,14 @@
 				<button @click="getExcel()" class="save_button" >导出Excel表格</button>
 			</view>
 		</view>
+		<!-- 历史数据折线图 -->
 		<view v-else>
 			<view style="display: flex;">
 				<view style="color: gray;margin-right: 20rpx;line-height: 60rpx;">可选参数</view>
 				<view style="display: flex;flex-wrap: wrap;width: 75%;">
 					<view v-for="key,index in usefulKeys">
 						<view @click="chooseParam(index)" v-if="key!='time'" class="option" :style="paramIndex==index?'color: black;background-color: #eee':'color: gray;'" style="margin-bottom: 20rpx;margin-right: 20rpx;">
-							{{paramMap.get(key)}}
+							{{isNormal?paramMap.get(key):(customParamList.find(item=>item.number==Number(key.slice(5))).name)}}
 						</view>
 					</view>
 				</view>
@@ -73,13 +75,14 @@
 
 		data() {
 			return {
+				isNormal:null,//true代表常规设备，false代表定制设备
 				datetimerange: [],
 				deviceArr: [],
 				currentDevice: '',
 				showTable: true, //为false时显示折线图
 				timeRange: [],
 				usefulKeys: [],
-				
+				customParamList:null,
 				pageNum: 1, //默认页数
 				totalPages: 1, //总页数
 				pageAmount: 100, //单页最多显示条数
@@ -128,7 +131,6 @@
 		},
 
 		onLoad() {
-			// console.log(getApp().globalData.deviceArr)
 			this.deviceArr = getApp().globalData.deviceArr
 			// this.test()
 		},
@@ -165,7 +167,7 @@
 						}
 					}
 					this.opts.xAxis.itemCount = data.length
-					this.opts.yAxis.data[0].title = this.paramUnitMap.get(key)
+					this.opts.yAxis.data[0].title = this.isNormal?this.paramUnitMap.get(key):this.customParamList.find(item=>item.number==Number(key.slice(5))).unit
 					this.chartData = {
 						categories: categories,
 						series: [{
@@ -177,10 +179,18 @@
 				}
 			},
 			getExcel(){
-				/*#ifdef APP-PLUS*/
 				let tableData = this.dataArr
+				let tableHead //表头，二维数组的第一行
+				if(this.isNormal){
+					tableHead = this.usefulKeys.map(key=>this.paramMap.get(key)+(this.paramUnitMap.get(key)?`(${this.paramUnitMap.get(key)})`:''))
+				}else{
+					tableHead = this.usefulKeys.map(key=>key=='time'?'时间':`${this.customParamList.find(item=>item.number==Number(key.slice(5))).name}(${this.customParamList.find(item=>item.number==Number(key.slice(5))).unit})`)
+				}
+				console.log(tableHead)
+				/*#ifdef APP-PLUS*/
+	
 				if(tableData.length){				
-					let excelData = [this.usefulKeys.map(item=>this.paramMap.get(item)+(this.paramUnitMap.get(item)?`(${this.paramUnitMap.get(item)})`:''))] //二维数组
+					let excelData = [tableHead] //二维数组
 					for(let item of tableData){
 						let rowData = []
 						for(let key of this.usefulKeys){
@@ -309,22 +319,35 @@
 				this.tableData = this.dataArr.slice(0, this.pageAmount)
 			},
 			handleData() {  //搜索完毕时，执行
+	
 				let that = this
 				that.usefulKeys = []
 				that.dayArr = []
-				for (let item of that.dataArr) {
-					if (!that.dayArr.includes(item.time.split(' ')[0])) {
-						that.dayArr.push(item.time.split(' ')[0])
-						Object.keys(item).forEach(key => {
-							if (item[key] != null && (key == 'temp' || key.includes('_v'))) {
-								if (!that.usefulKeys.includes(key)) {
-									that.usefulKeys.push(key)
+				if(this.isNormal){
+					for (let item of that.dataArr) {
+						if (!that.dayArr.includes(item.time.split(' ')[0])) {
+							that.dayArr.push(item.time.split(' ')[0])
+							Object.keys(item).forEach(key => {
+								if (item[key] != null && (key == 'temp' || key.includes('_v'))) {
+									if (!that.usefulKeys.includes(key)) {
+										that.usefulKeys.push(key)
+									}
 								}
-							}
-						})
-
+							})
+					
+						}
 					}
+				}else{ //定制设备
+					this.customParamList = getApp().globalData.deviceArr.find(item=>item.devSerialNumber == this.currentDevice).customParaList
+					Object.keys(that.dataArr[0]).forEach(key => {
+						if (key.includes('value')) {
+							if(this.customParamList.find(item=>item.number==Number(key.slice(5)))){
+								this.usefulKeys.push(key) //同样存储所有的有效参数名，但不做处理
+							}
+						}
+					})
 				}
+
 				if (that.usefulKeys.length) {
 					that.usefulKeys.push('time')
 				}
@@ -375,9 +398,11 @@
 			},
 			getData() {
 				if (this.timeRange.length == 2 && this.currentDevice) {
+					this.isNormal = !getApp().globalData.customArr.includes(Number(this.currentDevice))
+					let url_suf = this.isNormal?'getRecordNewByDevAndTime':'getCusRecordByDevAndTime'
 					let that = this
 					uni.request({
-						url: getApp().globalData.baseUrl + 'getRecordNewByDevAndTime',
+						url: getApp().globalData.baseUrl + url_suf,
 						data: {
 							dev: this.currentDevice,
 							begin: this.timeRange[0],
