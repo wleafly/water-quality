@@ -28,11 +28,11 @@
 			paramMap:new Map([["cod_v","COD"],["ddm_m_v","电导率m"],["ddm_u_v","电导率μ"],["phg_v","pH"],["orp_v","ORP"],["rdo_v","溶解氧"],["nhn_v","氨氮"],["zs_v","浊度"],
 				["ddms_v","盐度"],["cl_v","余氯"],["chlo_v","叶绿素"],["bga_v","蓝绿藻"],["tps_v","透明度"],["tss_v","悬浮物"],["oil_v","水中油"],["col_v","色度"],["mlss_v","污泥浓度"],
 				["tp_v","总磷"],["tn_v","总氮"],["non_v","硝氮"],["tmn_v","高锰酸盐"],["cli_v","氯离子"],["flu_v","氟离子"],["cai_v","钙离子"],["ki_v","钾离子"],["cui_v","铜离子"],
-				["toc_v","总有机碳"],["tco_v","湿法COD"],["tan_v","湿法氨氮"],["clx_v","湿法余氯"],["temp","温度"],["bod_v","BOD"],["tds_v","总溶解固体"],["time","时间"]]),
+				["toc_v","总有机碳"],["tco_v","湿法COD"],["tan_v","湿法氨氮"],["clx_v","湿法余氯"],["temp","温度"],["temp_v","温度"],["bod_v","BOD"],["tds_v","总溶解固体"],["time","时间"]]),
 			paramUnitMap:new Map([["cod_v","mg/L"],["ddm_m_v","mS/cm"],["ddm_u_v","μS/cm"],["phg_v"," "],["orp_v","mV"],["rdo_v","mg/L"],["nhn_v","mg/L"],["zs_v","NTU"],
 				["ddms_v","PSU"],["cl_v","mg/L"],["chlo_v","μg/L"],["bga_v","Kcells/mL"],["tps_v","mm"],["tss_v","mg/L"],["oil_v","mg/L"],["col_v","Hazen"],["mlss_v","g/L"],
 				["tp_v","mg/L"],["tn_v","mg/L"],["non_v","mg/L"],["tmn_v","mg/L"],["cli_v","mg/L"],["flu_v","mg/L"],["cai_v","mg/L"],["ki_v","mg/L"],["cui_v","mg/L"],
-				["toc_v","mg/L"],["tco_v","mg/L"],["tan_v","mg/L"],["clx_v","mg/L"],["temp","℃"],["bod_v","mg/L"],["tds_v","mg/L"]]),
+				["toc_v","mg/L"],["tco_v","mg/L"],["tan_v","mg/L"],["clx_v","mg/L"],["temp","℃"],["temp_v","℃"],["bod_v","mg/L"],["tds_v","mg/L"]]),
 		}
 	}
 </script>

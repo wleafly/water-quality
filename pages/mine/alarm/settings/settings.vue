@@ -19,7 +19,8 @@
 								v-for="item in ['监测项','触发条件']">{{item}}</uni-th>
 						</uni-tr>
 						<uni-tr v-for="data in monitors">
-							<uni-th>{{data.name}}</uni-th>
+							<!-- 常规设备根据简称找到paramMap的参数名，定制设备原样显示 -->
+							<uni-th>{{paramMap.get(data.name+'_v')?paramMap.get(data.name+'_v'):data.name}}</uni-th>
 							<uni-th>
 								<text v-if="data.min!=null">x<{{data.min}}</text>
 								<text v-if="data.max!=null">,x>{{data.max}}</text>
@@ -49,12 +50,12 @@
 			<view class="select_view">
 				<view class="select_title">合法值上限</view>
 				<input type="number" v-model:value="max" style="border: 1rpx solid #ddd;border-radius: 5rpx;padding: 0 10rpx;width: 100rpx;text-align: right;"/>
-				<!-- <text style="color: gray;margin-left: 10rpx;">mg/L</text> -->
+				<text style="color: gray;margin-left: 10rpx;">{{monitors[paramIndex]?(monitors[paramIndex].unit?monitors[paramIndex].unit:paramUnitMap.get(monitors[paramIndex].name+'_v')):''}}</text>
 			</view>
 			<view class="select_view">
 				<view class="select_title">合法值下限</view>
 				<input type="number" v-model:value="min" style="border: 1rpx solid #ddd;border-radius: 5rpx;padding: 0 10rpx;width: 100rpx;text-align: right;"/>
-				<!-- <text style="color: gray;margin-left: 10rpx;">mg/L</text> -->
+				<text style="color: gray;margin-left: 10rpx;">{{monitors[paramIndex]?(monitors[paramIndex].unit?monitors[paramIndex].unit:paramUnitMap.get(monitors[paramIndex].name+'_v')):''}}</text>
 			</view>
 		
 			<view style="display: flex;justify-content: space-between;">
@@ -76,7 +77,9 @@
 				monitors:[], //当前所选设备的全部监测项的信息
 				params:[], //当前所选设备的全部监测项的名字
 				min:null, //合法值下限
-				max:null//合法值下限
+				max:null,//合法值下限
+				paramMap:getApp().globalData.paramMap,
+				paramUnitMap:getApp().globalData.paramUnitMap
 			}
 		},
 		methods: {
@@ -107,7 +110,7 @@
 							data.number = this.monitors[this.paramIndex].number
 							url += 'changeCusAlarmBoundsByDevAndName'
 						}else{ //常规设备，用name
-							data.name = this.params[this.paramIndex]
+							data.name = this.monitors[this.paramIndex].name
 							url += 'changeConAlarmBoundsByDevAndName'
 						}
 						uni.request({
@@ -153,7 +156,8 @@
 						success:(res)=>{
 							console.log(res.data)
 							this.monitors = res.data
-							this.params = this.monitors.map(item=>item.name)
+							//定制设备获取到的参数名是英文简称，需要修改为中文
+							this.params = this.monitors.map(item=>this.paramMap.get(item.name+'_v')?this.paramMap.get(item.name+'_v'):item.name)
 			
 						}
 					})
